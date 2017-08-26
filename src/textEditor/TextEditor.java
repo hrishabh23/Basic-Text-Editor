@@ -13,6 +13,7 @@ public class TextEditor extends JFrame{
 	
 	private static final long serialVersionUID = 1L;
 	private JTextArea area = new JTextArea(20, 120);
+	private JTextArea checker = new JTextArea();
 	private JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
 	private String currentFile = "Untitled";
 	private boolean changed = false;
@@ -75,7 +76,7 @@ public class TextEditor extends JFrame{
 		/*
 		 * Names to be displayed are set
 		 * default names are cut-to-clipboard, copy-to-clipboard etc.
-		 * Names are only set for these Actions since default cut, copy and paste methods will be used
+		 * Names are only set for these Actions because these are not objects of AbstractAction
 		 */
 		
 		editMenu.getItem(0).setText("Cut");
@@ -102,7 +103,7 @@ public class TextEditor extends JFrame{
 		JButton ita = tool.add(Italics);
 		
 		
-		cut.setText(null); cut.setIcon(new ImageIcon("images/cut.gif"));
+		cut.setText(null); cut.setIcon(new ImageIcon("images/cut.gif"));	//Icons of buttons are set
 		cop.setText(null); cop.setIcon(new ImageIcon("images/copy.gif"));
 		pas.setText(null); pas.setIcon(new ImageIcon("images/paste.gif"));
 		bol.setFont(new Font("Monospaced", Font.BOLD, 18));
@@ -110,25 +111,34 @@ public class TextEditor extends JFrame{
 		ita.setFont(new Font("Monospaced", Font.ITALIC, 18));
 		ita.setText(" I ");
 		
-		Save.setEnabled(false);
+		Save.setEnabled(false);		//Save and  Save As options are disabled until any change is made
 		SaveAs.setEnabled(false);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		pack();
-		area.addKeyListener(k1);
+		area.addKeyListener(notifyChange);
 		setTitle(currentFile);
 		setVisible(true);
 	}
 	
-	private KeyListener k1 = new KeyAdapter(){
+	private KeyListener notifyChange = new KeyAdapter(){
 		public void keyPressed(KeyEvent e){
-			changed = true;
-			Save.setEnabled(true);
-			SaveAs.setEnabled(true);
+			
+				changed = true;
+				Save.setEnabled(true);
+				SaveAs.setEnabled(true);
+			
 		}
 	};
 	
 	
+	//Defining Actions start here
+	
+	
+	/*
+	 * Prompts to save the file which is to be closed
+	 * Lets to choose a file from JFileChooser
+	 */
 	Action Open = new AbstractAction("Open", new ImageIcon("images/open.gif")) {
 		/**
 		 * 
@@ -138,12 +148,19 @@ public class TextEditor extends JFrame{
 		public void actionPerformed(ActionEvent e){
 			saveOld();
 			if(dialog.showOpenDialog(null)==JFileChooser.APPROVE_OPTION) {
+				
 				readInFile(dialog.getSelectedFile().getAbsolutePath());
 			}
 			SaveAs.setEnabled(true);
+			
 		}
 	};
 	
+	
+	/*
+	 * If file has already been saved previously then saves automatically
+	 * If not then executes saveAs
+	 */
 	Action Save = new AbstractAction("Save", new ImageIcon("images/save.gif")) {
 		/**
 		 * 
@@ -157,6 +174,10 @@ public class TextEditor extends JFrame{
 		}
 	};
 	
+	/*
+	 * Prompts to save the currently opened file
+	 * Clears all the data related to previous file
+	 */
 	Action New = new AbstractAction("New", new ImageIcon("images/new.gif")) {
 		/**
 		 * 
@@ -164,12 +185,16 @@ public class TextEditor extends JFrame{
 		private static final long serialVersionUID = 1L;
 		public void actionPerformed(ActionEvent e){
 			saveOld();
-			currentFile="untitled";
+			currentFile="Untitled";
 			changed = false;
 			area.setText(null);
 			setTitle(currentFile);
 		}
 	};
+
+	/*
+	*Executes saveFileAs method
+	*/
 	
 	Action SaveAs = new AbstractAction("Save as...") {
 		/**
@@ -181,6 +206,11 @@ public class TextEditor extends JFrame{
 			saveFileAs();
 		}
 	};
+
+	/*
+	*Prompts to save the opened file
+	*Exits
+	*/
 	
 	Action Quit = new AbstractAction("Quit") {
 		/**
@@ -193,6 +223,10 @@ public class TextEditor extends JFrame{
 			System.exit(0);
 		}
 	};
+
+	/*
+	*Makes the text bold and not bold when runs
+	*/
 	
 	Action Bold = new AbstractAction("Bold"){
 		/**
@@ -206,6 +240,10 @@ public class TextEditor extends JFrame{
 			
 		}
 	};
+
+	/*
+	*Makes the text Italic and not italic when runs
+	*/
 	
 	Action Italics = new AbstractAction("Italics"){
 		/**
@@ -220,17 +258,29 @@ public class TextEditor extends JFrame{
 		}
 	};
 	
+	/*
+	*Defining the actions Cut, Copy and Paste
+	*
+	*/
 	ActionMap m = area.getActionMap();
 	Action Cut = m.get(DefaultEditorKit.cutAction);
 	Action Copy = m.get(DefaultEditorKit.copyAction);
 	Action Paste = m.get(DefaultEditorKit.pasteAction);
 
+	/*
+	*Lets to choose name and save
+	*/
 
 	private void saveFileAs(){
-		if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION)
+		if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION){
 			saveFile(dialog.getSelectedFile().getAbsolutePath());
+		}
 	}
-	
+
+
+	/*
+	*Prompts to save the file
+	*/
 	private void saveOld(){
 		if(changed){
 			if(JOptionPane.showConfirmDialog(this, "Would you like to save "+ currentFile+" ?", "Save", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)
